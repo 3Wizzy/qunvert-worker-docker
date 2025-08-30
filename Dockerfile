@@ -25,6 +25,9 @@ RUN npm ci --only=production --ignore-scripts
 # Copy the rest of the source code to the working directory
 COPY . .
 
+# Create sessions directory if it doesn't exist
+RUN mkdir -p sessions
+
 # Expose the port the API will run on
 EXPOSE 3000
 

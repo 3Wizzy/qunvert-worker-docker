@@ -69,7 +69,7 @@ const sendMessage = async (req, res) => {
   try {
     const { chatId, content, contentType, options } = req.body
     const client = sessions.get(req.params.sessionId)
-
+    console.log('Sending message to', chatId, 'with content', content, 'and contentType', contentType, 'and options', options)
     let messageOut
     switch (contentType) {
       case 'string':
