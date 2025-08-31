@@ -225,12 +225,69 @@ const sendStateTyping = async (req, res) => {
   }
 }
 
+/**
+ * Fetches the last N messages from a chat for AI context (text only, no media)
+ *
+ * @function
+ * @async
+ * @param {Object} req - The request object containing sessionId and chatId
+ * @param {string} req.params.sessionId - The ID of the session
+ * @param {Object} req.body - The body containing chatId and optional limit
+ * @param {string} req.body.chatId - The ID of the chat from which to fetch messages
+ * @param {number} req.body.limit - Maximum number of messages to fetch (default: 10)
+ * @param {Object} res - The response object
+ * @returns {Promise<Object>} A JSON object with success status and filtered messages for AI
+ * @throws {Error} If the chat is not found or there is an error fetching messages
+ */
+const fetchMessagesForAI = async (req, res) => {
+  try {
+    const { chatId, limit = 10 } = req.body
+    const client = sessions.get(req.params.sessionId)
+    const chat = await client.getChatById(chatId)
+    if (!chat) { sendErrorResponse(res, 404, 'Chat not Found') }
+    
+    // Fetch messages with limit (max 10, min 5 if available)
+    const requestedLimit = Math.min(Math.max(limit, 5), 10)
+    const messages = await chat.fetchMessages({ limit: requestedLimit })
+    
+    // Filter to get only text messages (no media) and format for AI
+    const aiMessages = messages
+      .filter(msg => msg.type === 'chat' && msg.body && msg.body.trim() !== '') // Only text messages
+      .slice(0, requestedLimit) // Ensure we don't exceed the limit
+      .reverse() // Reverse to get chronological order (oldest first)
+      .map(msg => ({
+        role: msg.fromMe ? 'assistant' : 'user',
+        text: msg.body.trim(),
+        timestamp: msg.timestamp
+      }))
+    
+    // Log the messages being sent for AI context
+    console.log(`📜 [WORKER] ========== MESSAGES FOR AI CONTEXT ==========`)
+    console.log(`📜 [WORKER] Chat ID: ${chatId}`)
+    console.log(`📜 [WORKER] Total fetched: ${messages.length}, Text messages: ${aiMessages.length}`)
+    aiMessages.forEach((msg, index) => {
+      console.log(`📜 [WORKER] ${index + 1}. [${msg.role}] "${msg.text}"`)
+    })
+    console.log(`📜 [WORKER] =============================================`)
+    
+    res.json({ 
+      success: true, 
+      messages: aiMessages,
+      totalFetched: messages.length,
+      textMessagesCount: aiMessages.length
+    })
+  } catch (error) {
+    sendErrorResponse(res, 500, error.message)
+  }
+}
+
 module.exports = {
   getClassInfo,
   clearMessages,
   clearState,
   deleteChat,
   fetchMessages,
+  fetchMessagesForAI,
   getContact,
   sendStateRecording,
   sendStateTyping
