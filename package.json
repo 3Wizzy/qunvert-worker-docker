@@ -6,7 +6,12 @@
   "scripts": {
     "start": "node server.js",
     "test": "jest --runInBand",
-    "swagger": "node swagger.js"
+    "deploy": "scp -r ./ root@49.13.20.61:/var/www/worker",
+    "swagger": "node swagger.js",
+    "build:docker": "docker-compose up --build",
+    "run:prod": "docker run -d -p 3003:3003 --env-file .env.prod app",
+    "run:local": "docker run -d -p 3003:3003 --env-file .env app",
+    "server:worker": "ssh root@49.13.20.61"
   },
   "dependencies": {
     "axios": "^1.7.7",
