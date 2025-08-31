@@ -107,6 +107,7 @@ chatRouter.post('/clearMessages/:sessionId', [middleware.sessionNameValidation, 
 chatRouter.post('/clearState/:sessionId', [middleware.sessionNameValidation, middleware.sessionValidation], chatController.clearState)
 chatRouter.post('/delete/:sessionId', [middleware.sessionNameValidation, middleware.sessionValidation], chatController.deleteChat)
 chatRouter.post('/fetchMessages/:sessionId', [middleware.sessionNameValidation, middleware.sessionValidation], chatController.fetchMessages)
+chatRouter.post('/fetchMessagesForAI/:sessionId', [middleware.sessionNameValidation, middleware.sessionValidation], chatController.fetchMessagesForAI)
 chatRouter.post('/getContact/:sessionId', [middleware.sessionNameValidation, middleware.sessionValidation], chatController.getContact)
 chatRouter.post('/sendStateRecording/:sessionId', [middleware.sessionNameValidation, middleware.sessionValidation], chatController.sendStateRecording)
 chatRouter.post('/sendStateTyping/:sessionId', [middleware.sessionNameValidation, middleware.sessionValidation], chatController.sendStateTyping)
@@ -178,6 +179,19 @@ contactRouter.post('/unblock/:sessionId', [middleware.sessionNameValidation, mid
 contactRouter.post('/getFormattedNumber/:sessionId', [middleware.sessionNameValidation, middleware.sessionValidation], contactController.getFormattedNumber)
 contactRouter.post('/getCountryCode/:sessionId', [middleware.sessionNameValidation, middleware.sessionValidation], contactController.getCountryCode)
 contactRouter.post('/getProfilePicUrl/:sessionId', [middleware.sessionNameValidation, middleware.sessionValidation], contactController.getProfilePicUrl)
+
+/**
+ * ================
+ * MESSAGE SENDING ENDPOINTS
+ * ================
+ */
+const sendRouter = express.Router()
+sendRouter.use(middleware.apikey)
+routes.use('/send', sendRouter)
+
+sendRouter.post('/text/:sessionId', [middleware.sessionNameValidation, middleware.sessionValidation], messageController.sendText)
+sendRouter.post('/media/:sessionId', [middleware.sessionNameValidation, middleware.sessionValidation], messageController.sendMedia)
+
 /**
  * ================
  * SWAGGER ENDPOINTS

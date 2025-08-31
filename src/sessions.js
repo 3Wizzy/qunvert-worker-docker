@@ -1,9 +1,11 @@
 const { Client, LocalAuth } = require('whatsapp-web.js')
 const fs = require('fs')
 const path = require('path')
+const axios = require('axios')
 const sessions = new Map()
 const { baseWebhookURL, sessionFolderPath, maxAttachmentSize, setMessagesAsSeen, webVersion, webVersionCacheType, recoverSessions } = require('./config')
 const { triggerWebhook, waitForNestedObject, checkIfEventisEnabled } = require('./utils')
+// ChatbotProcessor moved to main API for proper architecture
 
 // Function to validate if the session is ready
 const validateSession = async (sessionId) => {
@@ -143,6 +145,16 @@ const setupSession = (sessionId) => {
 const initializeEvents = (client, sessionId) => {
   // check if the session webhook is overridden
   const sessionWebhook = process.env[sessionId.toUpperCase() + '_WEBHOOK_URL'] || baseWebhookURL
+  
+  console.log(`🔌 [WEBHOOK] Initializing events for session: ${sessionId}`);
+  console.log(`🔌 [WEBHOOK] Session webhook URL: ${sessionWebhook}`);
+  console.log(`🔌 [WEBHOOK] Base webhook URL: ${baseWebhookURL}`);
+  console.log(`🔌 [WEBHOOK] API key configured: ${process.env.API_KEY ? 'YES' : 'NO'}`);
+  console.log(`🔌 [WEBHOOK] Worker ID: ${process.env.WORKER_ID || 'NOT SET'}`);
+  
+  if (!sessionWebhook) {
+    console.error(`🚨 [WEBHOOK] ❌ No webhook URL configured for session ${sessionId}!`);
+  }
 
   if (recoverSessions) {
     waitForNestedObject(client, 'pupPage').then(() => {
@@ -174,7 +186,7 @@ const initializeEvents = (client, sessionId) => {
   checkIfEventisEnabled('authenticated')
     .then(_ => {
       client.on('authenticated', () => {
-        triggerWebhook(sessionWebhook, sessionId, 'authenticated')
+        triggerWebhook(sessionWebhook, sessionId, 'authenticated', { workerId: process.env.WORKER_ID })
       })
     })
 
@@ -243,7 +255,12 @@ const initializeEvents = (client, sessionId) => {
   checkIfEventisEnabled('message')
     .then(_ => {
       client.on('message', async (message) => {
+        // Trigger original webhook
         triggerWebhook(sessionWebhook, sessionId, 'message', { message })
+        
+        // Message webhook will be sent automatically by triggerWebhook above
+        // No need for additional processing here - WhatsApp Manager will handle it
+        
         if (message.hasMedia && message._data?.size < maxAttachmentSize) {
           // custom service event
           checkIfEventisEnabled('media').then(_ => {

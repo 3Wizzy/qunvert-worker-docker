@@ -358,6 +358,86 @@ const unstar = async (req, res) => {
   }
 }
 
+/**
+ * Send a text message to a WhatsApp contact/group
+ * Used by main API to send chatbot responses
+ */
+const sendText = async (req, res) => {
+  try {
+    const { to, message } = req.body
+    const client = sessions.get(req.params.sessionId)
+    
+    if (!client) {
+      return sendErrorResponse(res, 404, 'Session not found')
+    }
+
+    console.log(`📤 [WORKER] Sending text message to ${to}: "${message}"`)
+    const result = await client.sendMessage(to, message)
+    
+    res.json({ 
+      success: true, 
+      result: {
+        id: result.id._serialized,
+        timestamp: result.timestamp,
+        ack: result.ack
+      }
+    })
+  } catch (error) {
+    console.error('📤 [WORKER] Error sending text message:', error)
+    sendErrorResponse(res, 500, error.message)
+  }
+}
+
+/**
+ * Send a media message to a WhatsApp contact/group
+ * Used by main API to send chatbot responses with media
+ */
+const sendMedia = async (req, res) => {
+  try {
+    const { to, mediaUrl, caption = null } = req.body
+    const client = sessions.get(req.params.sessionId)
+    
+    if (!client) {
+      return sendErrorResponse(res, 404, 'Session not found')
+    }
+
+    console.log(`📤 [WORKER] Sending media to ${to}:`, { mediaUrl, caption })
+
+    // Import MessageMedia for handling media
+    const { MessageMedia } = require('whatsapp-web.js')
+    const axios = require('axios')
+    
+    // Download media from URL
+    const response = await axios.get(mediaUrl, { responseType: 'arraybuffer' })
+    const base64Data = Buffer.from(response.data).toString('base64')
+    const mimetype = response.headers['content-type'] || 'application/octet-stream'
+    const filename = mediaUrl.split('/').pop() || 'file'
+    
+    // Create MessageMedia object
+    const media = new MessageMedia(mimetype, base64Data, filename)
+    
+    // Send media with optional caption
+    const messageOptions = {}
+    if (caption) {
+      messageOptions.caption = caption
+    }
+    
+    const result = await client.sendMessage(to, media, messageOptions)
+    
+    res.json({ 
+      success: true, 
+      result: {
+        id: result.id._serialized,
+        timestamp: result.timestamp,
+        ack: result.ack
+      }
+    })
+  } catch (error) {
+    console.error('📤 [WORKER] Error sending media message:', error)
+    sendErrorResponse(res, 500, error.message)
+  }
+}
+
 module.exports = {
   getClassInfo,
   deleteMessage,
@@ -371,5 +451,7 @@ module.exports = {
   react,
   reply,
   star,
-  unstar
+  unstar,
+  sendText,
+  sendMedia
 }
