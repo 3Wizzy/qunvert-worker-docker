@@ -7,12 +7,12 @@ services:
     # image: chrishubert/whatsapp-web-api:latest # Pull the image from Docker Hub
     restart: always
     ports:
-      - "${PORT:-3000}:3000"
+      - "${PORT:-3003}:3003"
     env_file:
       - .env
     environment:
       # Core WhatsApp API Configuration
-      - BASE_WEBHOOK_URL=${BASE_WEBHOOK_URL:-http://localhost:3000/localCallbackExample}
+      - BASE_WEBHOOK_URL=${BASE_WEBHOOK_URL:-http://localhost:3003/localCallbackExample}
       - ENABLE_LOCAL_CALLBACK_EXAMPLE=${ENABLE_LOCAL_CALLBACK_EXAMPLE:-TRUE}
       - MAX_ATTACHMENT_SIZE=${MAX_ATTACHMENT_SIZE:-5000000}
       - SET_MESSAGES_AS_SEEN=${SET_MESSAGES_AS_SEEN:-TRUE}
@@ -36,12 +36,11 @@ services:
       
       # Worker Registration (for distributed setup)
       - WORKER_ID=${WORKER_ID:-worker-1}
-      - WORKER_URL=${WORKER_URL:-http://localhost:3000}
+      - WORKER_URL=${WORKER_URL:-http://localhost:3003}
       - WHATSAPP_MANAGER_URL=${WHATSAPP_MANAGER_URL}
       - MAX_SESSIONS=${MAX_SESSIONS:-10}
-      
       # Server Configuration
-      - PORT=${PORT:-3000}
+      - PORT=${PORT:-3003}
       - NODE_ENV=${NODE_ENV:-production}
     volumes:
       - ./sessions:/usr/src/app/sessions # Mount the local ./sessions/ folder to the container's /usr/src/app/sessions folder
