@@ -4,6 +4,7 @@ services:
   app:
     container_name: whatsapp_web_api
     build: .
+    image: twozillasdocker/whatsapp-api-app:latest
     # image: chrishubert/whatsapp-web-api:latest # Pull the image from Docker Hub
     restart: always
     ports:
@@ -31,7 +32,7 @@ services:
       - WEB_VERSION_CACHE_TYPE=${WEB_VERSION_CACHE_TYPE:-none}
       
       # Session Management
-      - RECOVER_SESSIONS=${RECOVER_SESSIONS:-FALSE}
+      - RECOVER_SESSIONS=${RECOVER_SESSIONS:-TRUE}
       - SESSIONS_PATH=${SESSIONS_PATH:-./sessions}
       
       # Worker Registration (for distributed setup)

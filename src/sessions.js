@@ -93,10 +93,13 @@ const setupSession = (sessionId) => {
     }
 
     // Disable the delete folder from the logout function (will be handled separately)
-    const localAuth = new LocalAuth({ clientId: sessionId, dataPath: sessionFolderPath })
+    const localAuth = new LocalAuth({ 
+      clientId: sessionId,
+       dataPath: sessionFolderPath })
     delete localAuth.logout
     localAuth.logout = () => { }
 
+    console.log('sessionFolderPath', sessionFolderPath)
     const clientOptions = {
       puppeteer: {
         executablePath: process.env.CHROME_BIN || null,

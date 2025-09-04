@@ -13,7 +13,8 @@ if (!baseWebhookURL) {
 
   //SELF REGISTER
 const registerWorker = async () => {
-  console.log('\n2️⃣ Registering worker with manager...');
+  console.log('\n 🤖 Registering worker with manager...');
+  console.log("New fooking image")
   try {
     const axios = require('axios');
     const body = {
@@ -22,6 +23,7 @@ const registerWorker = async () => {
       maxSessions: parseInt(process.env.MAX_SESSIONS) || 10
     }
     console.log('Registering worker with manager...', body)
+    console.log('WHATSAPP_MANAGER_URL', process.env.WHATSAPP_MANAGER_URL)
     await axios.post(`${process.env.WHATSAPP_MANAGER_URL}/workers/register`, body, { timeout: 10000 });
     console.log('✅ Worker registered successfully!');
   } catch (error) {
